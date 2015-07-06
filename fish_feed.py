@@ -24,11 +24,11 @@ class MyDaemon(Daemon):
 		##servo.ChangeDutyCycle(12.5)
 		time.sleep(1)
 
-	def run(self):
-		time_set=['08:00:00','18:30:00']
+	def run(self, now=False):
+		time_set=['08:00:00','18:30:00','16:00:00']
 		led = 22
 		while True:
-			if time.strftime('%X') in time_set:
+			if time.strftime('%X') in time_set or now:
 				try:
 					GPIO.setmode(GPIO.BOARD)
 					# pin 22 for servo
@@ -47,6 +47,9 @@ class MyDaemon(Daemon):
 					logging.error('%s' %e)
 
 				time.sleep(1)
+				if now:
+					now=False
+					exit()
 		
 	
 init_log('%s.log' %sys.argv[0])
@@ -65,9 +68,11 @@ if __name__ == "__main__":
 		elif 'stop' == sys.argv[1]:
 			logging.info("stopping service")
 			daemon.stop()
+
 		elif 'restart' == sys.argv[1]:
 			logging.info("restarting service")
 			daemon.restart()
+
 		elif 'status' == sys.argv[1]:
 			pid = daemon.status()
 			if pid:
@@ -75,6 +80,8 @@ if __name__ == "__main__":
 			else:
 				print "Service is stopped!"
 
+		elif 'now' == sys.argv[1]:
+			daemon.run(now=True)
 
 		else:
 			print "Unknown command!"
