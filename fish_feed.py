@@ -1,38 +1,78 @@
+'''
+It works with Raspberry Pi and servo motor.
+'''
+
 import RPi.GPIO as GPIO
-import time
-
-def turn_right(servo):
-	servo.ChangeDutyCycle(2.5)
-	time.sleep(1)
-	#servo.ChangeDutyCycle(12.5)
-	#servo.ChangeDutyCycle(12.5)
-	#servo.ChangeDutyCycle(7.5)
-	#servo.ChangeDutyCycle(2.5)
-	#time.sleep(1)
+import time, sys
+from daemon import Daemon
 
 
+def init_log(log_file):
+	logging.basicConfig(filename='/var/log/%s'%(log_file),level=logging.INFO,
+	 format="[%(asctime)s][%(levelname)s] %(message)s",
+	 datefmt="%Y-%m-%d %H:%M:%S")
 
-def turn_left(servo):
-	servo.ChangeDutyCycle(12.5)
-	time.sleep(1)
 
-time_set=['08:00:00','18:30:00']
-led = 22
-while True:
-	if time.strftime('%X') in time_set:
-		GPIO.setmode(GPIO.BOARD)
-		# pin 22 for servo
-		GPIO.setup(15, GPIO.OUT)
-		
-		# pin 25 for led
-		GPIO.setup(led, GPIO.OUT)
-		GPIO.output(led, True)
-		p = GPIO.PWM(15,50)
-		p.start(2.5)
-		turn_right(p)
-		turn_left(p)
-		GPIO.output(led,False)
-		GPIO.cleanup()
-		#time.sleep(10)
+class MyDaemon(Daemon):
+
+
+	def turn_right(servo):
+		servo.ChangeDutyCycle(2.5)
+		time.sleep(1)
+
+	def turn_left(servo):
+		servo.ChangeDutyCycle(12.5)
+		time.sleep(1)
+
+	def run():
+		time_set=['08:00:00','18:30:00']
+		led = 22
+		while True:
+			if time.strftime('%X') in time_set:
+				GPIO.setmode(GPIO.BOARD)
+				# pin 22 for servo
+				GPIO.setup(15, GPIO.OUT)
+				
+				# pin 25 for led
+				GPIO.setup(led, GPIO.OUT)
+				GPIO.output(led, True)
+				p = GPIO.PWM(15,50)
+				p.start(2.5)
+				self.turn_right(p)
+				self.turn_left(p)
+				GPIO.output(led,False)
+				GPIO.cleanup()
+				#time.sleep(10)
 		
 	
+init_log('%s.log' %sys.argv[0])
+
+if __name__ == "__main__":
+	daemon = MyDaemon('/tmp/%s.pid'% sys.argv[0])
+
+	if len(sys.argv) == 2:
+		if 'start' == sys.argv[1]:
+			logging.info("starting service")
+			daemon.start()
+		elif 'stop' == sys.argv[1]:
+			logging.info("stopping service")
+			daemon.stop()
+		elif 'restart' == sys.argv[1]:
+			logging.info("restarting service")
+			daemon.restart()
+		elif 'status' == sys.argv[1]:
+			pid = daemon.status()
+			if pid:
+				print "Service is running [pid:%s]" %pid
+			else:
+				print "Service is stopped!"
+
+
+		else:
+			print "Unknown command!"
+			sys.exit(2)
+
+		sys.exit(0)
+	else:
+		print "usage: %s start|stop|restart|status" % sys.argv[0]
+		sys.exit(2)
