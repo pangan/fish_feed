@@ -37,10 +37,11 @@ class MyDaemon(Daemon):
 					GPIO.setup(led, GPIO.OUT)
 					GPIO.output(led, True)
 					p = GPIO.PWM(15,50)
-					p.start(2.5)
+					p.start(1)
 					self.turn_right(p)
 					self.turn_left(p)
 					GPIO.output(led,False)
+					p.stop()
 					GPIO.cleanup()
 					logging.info("feeding.")
 				except Exception, e:
