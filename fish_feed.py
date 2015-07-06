@@ -5,7 +5,7 @@ It works with Raspberry Pi and servo motor.
 import RPi.GPIO as GPIO
 import time, sys
 from daemon import Daemon
-
+import logging
 
 def init_log(log_file):
 	logging.basicConfig(filename='/var/log/%s'%(log_file),level=logging.INFO,
@@ -16,34 +16,37 @@ def init_log(log_file):
 class MyDaemon(Daemon):
 
 
-	def turn_right(servo):
-		servo.ChangeDutyCycle(2.5)
+	def turn_right(self, servo):
+		##servo.ChangeDutyCycle(2.5)
 		time.sleep(1)
 
-	def turn_left(servo):
-		servo.ChangeDutyCycle(12.5)
+	def turn_left(self, servo):
+		##servo.ChangeDutyCycle(12.5)
 		time.sleep(1)
 
-	def run():
+	def run(self):
 		time_set=['08:00:00','18:30:00']
 		led = 22
 		while True:
 			if time.strftime('%X') in time_set:
-				GPIO.setmode(GPIO.BOARD)
-				# pin 22 for servo
-				GPIO.setup(15, GPIO.OUT)
-				
-				# pin 25 for led
-				GPIO.setup(led, GPIO.OUT)
-				GPIO.output(led, True)
-				p = GPIO.PWM(15,50)
-				p.start(2.5)
-				self.turn_right(p)
-				self.turn_left(p)
-				GPIO.output(led,False)
-				GPIO.cleanup()
-				logging.info("feeding.")
-				#time.sleep(10)
+				try:
+					GPIO.setmode(GPIO.BOARD)
+					# pin 22 for servo
+					GPIO.setup(15, GPIO.OUT)
+					# pin 25 for led
+					GPIO.setup(led, GPIO.OUT)
+					GPIO.output(led, True)
+					p = GPIO.PWM(15,50)
+					p.start(2.5)
+					self.turn_right(p)
+					self.turn_left(p)
+					GPIO.output(led,False)
+					GPIO.cleanup()
+					logging.info("feeding.")
+				except Exception, e:
+					logging.error('%s' %e)
+
+				time.sleep(1)
 		
 	
 init_log('%s.log' %sys.argv[0])
@@ -54,7 +57,11 @@ if __name__ == "__main__":
 	if len(sys.argv) == 2:
 		if 'start' == sys.argv[1]:
 			logging.info("starting service")
-			daemon.start()
+			try:
+				daemon.start()
+			except Exception, e:
+				logging.error("Shutting Down! %s" %e)
+
 		elif 'stop' == sys.argv[1]:
 			logging.info("stopping service")
 			daemon.stop()
