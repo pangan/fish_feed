@@ -25,7 +25,7 @@ class MyDaemon(Daemon):
 		time.sleep(1)
 
 	def run(self, now=False):
-		time_set=['08:00:00','18:30:00','16:00:00']
+		time_set=['08:00:00','18:30:00']
 		led = 22
 		while True:
 			if time.strftime('%X') in time_set or now:
