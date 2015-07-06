@@ -42,6 +42,7 @@ class MyDaemon(Daemon):
 				self.turn_left(p)
 				GPIO.output(led,False)
 				GPIO.cleanup()
+				logging.info("feeding.")
 				#time.sleep(10)
 		
 	
