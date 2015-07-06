@@ -17,11 +17,11 @@ class MyDaemon(Daemon):
 
 
 	def turn_right(self, servo):
-		##servo.ChangeDutyCycle(2.5)
+		servo.ChangeDutyCycle(2.5)
 		time.sleep(1)
 
 	def turn_left(self, servo):
-		##servo.ChangeDutyCycle(12.5)
+		servo.ChangeDutyCycle(12.5)
 		time.sleep(1)
 
 	def run(self, now=False):
